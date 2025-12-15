@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  python-api:
+    container_name: churn-python-api
+    build:
+      context: ..
+      dockerfile: docker/python.Dockerfile
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    networks:
+      - churn-network
+
+  java-api:
+    container_name: churn-java-api
+    build:
+      context: ..
+      dockerfile: docker/java.Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - python-api
+    environment:
+      # URL interna do serviço FastAPI
+      PYTHON_API_URL: http://python-api:8001
+    restart: unless-stopped
+    networks:
+      - churn-network
+
+networks:
+  churn-network:
+    driver: bridge

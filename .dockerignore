@@ -1,0 +1,50 @@
+# =========================
+# Python / Virtual Envs
+# =========================
+.venv
+venv
+env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Jupyter / Data Science
+# =========================
+.ipynb_checkpoints/
+.notebook/
+*.ipynb
+
+# =========================
+# Git
+# =========================
+.git
+.gitignore
+
+# =========================
+# OS / IDE
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Logs / Temp
+# =========================
+*.log
+*.tmp
+
+# =========================
+# Large data (não sobe para container)
+# =========================
+data/raw/
+data/external/
+data/processed/
+
+# =========================
+# Local artifacts (opcional)
+# =========================
+artifacts/*.pkl
+artifacts/*.pickle
