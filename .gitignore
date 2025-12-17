@@ -15,6 +15,8 @@ env/
 # =====================================================
 .ipynb_checkpoints/
 .notebook/
+# Artefatos locais gerados por Data Science (não versionar)
+notebooks/individual/**/**/*.joblib
 
 # =====================================================
 # Dados do projeto (pipeline principal)
