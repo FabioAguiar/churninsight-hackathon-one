@@ -16,3 +16,4 @@ public enum InternetServiceType {
     public String getValue() {
         return value;
     }
+}

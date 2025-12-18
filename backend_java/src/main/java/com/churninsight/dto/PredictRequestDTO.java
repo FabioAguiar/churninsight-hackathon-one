@@ -1,104 +1,42 @@
 package com.churninsight.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
+@Data
 public class PredictRequestDTO {
 
-    @NotNull
+    @NotNull(message = "O tempo de contrato (tenure) é obrigatório")
+    @Min(value = 0, message = "O tempo de contrato não pode ser negativo")
     private Integer tenure;
 
-    @NotBlank
+    @NotBlank(message = "O tipo de contrato é obrigatório")
     private String contract;
 
     @JsonProperty("internet_service")
-    @NotBlank
+    @NotBlank(message = "O serviço de internet é obrigatório")
     private String internetService;
 
     @JsonProperty("online_security")
-    @NotBlank
+    @NotBlank(message = "A segurança online é obrigatória")
     private String onlineSecurity;
 
     @JsonProperty("tech_support")
-    @NotBlank
+    @NotBlank(message = "O suporte técnico é obrigatório")
     private String techSupport;
 
     @JsonProperty("monthly_charges")
-    @NotNull
-    private Double monthlyCharger;
+    @NotNull(message = "A cobrança mensal é obrigatória")
+    private Double monthlyCharges;
 
     @JsonProperty("paperless_billing")
-    @NotBlank
-    private String paperless_Billinh;
+    @NotBlank(message = "A opção de conta digital é obrigatória")
+    private String paperlessBilling;
 
     @JsonProperty("payment_method")
-    @NotBlank
+    @NotBlank(message = "O método de pagamento é obrigatório")
     private String paymentMethod;
-
-    public Integer getTenure() {
-        return tenure;
-    }
-
-    public void setTenure(Integer tenure) {
-        this.tenure = tenure;
-    }
-
-    public String getContract() {
-        return contract;
-    }
-
-    public void setContract(String contract) {
-        this.contract = contract;
-    }
-
-    public String getInternetService() {
-        return internetService;
-    }
-
-    public void setInternetService(String internetService) {
-        this.internetService = internetService;
-    }
-
-    public String getOnlineSecurity() {
-        return onlineSecurity;
-    }
-
-    public void setOnlineSecurity(String onlineSecurity) {
-        this.onlineSecurity = onlineSecurity;
-    }
-
-    public String getTechSupport() {
-        return techSupport;
-    }
-
-    public void setTechSupport(String techSupport) {
-        this.techSupport = techSupport;
-    }
-
-    public Double getMonthlyCharger() {
-        return monthlyCharger;
-    }
-
-    public void setMonthlyCharger(Double monthlyCharger) {
-        this.monthlyCharger = monthlyCharger;
-    }
-
-    public String getPaperless_Billinh() {
-        return paperless_Billinh;
-    }
-
-    public void setPaperless_Billinh(String paperless_Billinh) {
-        this.paperless_Billinh = paperless_Billinh;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
 }
-

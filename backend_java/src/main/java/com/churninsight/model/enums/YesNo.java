@@ -1,9 +1,10 @@
+package com.churninsight.model.enums; // Confirme se o pacote está correto
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum YesNo {
     YES("Yes"),
-    NO("No"),
+    NO("No");
 
     private final String value;
 
