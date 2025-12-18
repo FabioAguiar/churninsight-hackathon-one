@@ -1,0 +1,9 @@
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/service/PredictService.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/model/enums/PaymentMethodType.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/model/enums/InternetServiceType.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/controller/PredictController.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/dto/PredictResponseDTO.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/ChurnInsightApplication.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/dto/PredictRequestDTO.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/model/enums/ContractType.java
+/home/fabio_dev/Projetos/Hackathon/churninsight-hackathon-one/backend_java/src/main/java/com/churninsight/model/enums/YesNo.java

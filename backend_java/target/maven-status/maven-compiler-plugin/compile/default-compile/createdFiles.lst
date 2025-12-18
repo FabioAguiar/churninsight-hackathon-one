@@ -1,0 +1,9 @@
+com/churninsight/model/enums/YesNo.class
+com/churninsight/ChurnInsightApplication.class
+com/churninsight/service/PredictService.class
+com/churninsight/dto/PredictRequestDTO.class
+com/churninsight/dto/PredictResponseDTO.class
+InternetServiceType.class
+com/churninsight/controller/PredictController.class
+ContractType.class
+PaymentMethodType.class
