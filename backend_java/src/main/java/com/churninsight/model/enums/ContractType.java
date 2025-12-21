@@ -1,3 +1,4 @@
+package com.churninsight.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
