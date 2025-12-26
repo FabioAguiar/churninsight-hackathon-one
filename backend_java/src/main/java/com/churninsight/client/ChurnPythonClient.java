@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-// A mudança está aqui: lê do application.properties em vez de ser fixo
+
 @FeignClient(name = "churn-python-api", url = "${churn.python.api.url}")
 public interface ChurnPythonClient {
 
