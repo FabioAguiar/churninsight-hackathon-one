@@ -1,0 +1,24 @@
+version: 1
+name: telco_churn
+description: "Contrato de features e target para o projeto Telco Churn (ChurnInsight)."
+
+dataset:
+  source: "Telco Customer Churn (Kaggle/IBM)"
+  notes: "Prever o comportamento para fidelizar clientes."
+
+schema:
+  target: "Churn"
+  features:
+    - tenure
+    - Contract
+    - InternetService
+    - OnlineSecurity
+    - TechSupport
+    - MonthlyCharges
+    - PaperlessBilling
+    - PaymentMethod
+
+  # opcionais 
+  id_columns:
+    - customerID
+  drop_columns: []
