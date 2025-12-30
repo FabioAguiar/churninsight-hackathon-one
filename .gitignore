@@ -68,3 +68,15 @@ docker-compose.override.yml
 # =====================================================
 .env
 .env.*
+# =====================================================
+# Java / Maven (Adicionado para o Back-end)
+# =====================================================
+**/target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.properties
+.classpath
+.project
+.settings/
+*.iml

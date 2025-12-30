@@ -1,20 +1,25 @@
 package com.churninsight.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class PredictResponseDTO {
 
-    private boolean churn;
-    private double provability;
+    @JsonProperty("previsao")
+    private String previsao;
 
-    public PredictResponseDTO(boolean churn, double provability){
-        this.churn = churn;
-        this.provability = provability;
+    @JsonProperty("probabilidade")
+    private Double probabilidade;
+
+    public PredictResponseDTO() {}
+
+    public PredictResponseDTO(String previsao, Double probabilidade) {
+        this.previsao = previsao;
+        this.probabilidade = probabilidade;
     }
 
-    public boolean isChurn() {
-        return churn;
-    }
+    public String getPrevisao() { return previsao; }
+    public void setPrevisao(String previsao) { this.previsao = previsao; }
 
-    public double getProvability() {
-        return provability;
-    }
+    public Double getProbabilidade() { return probabilidade; }
+    public void setProbabilidade(Double probabilidade) { this.probabilidade = probabilidade; }
 }
