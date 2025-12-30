@@ -1,7 +1,9 @@
 package com.churninsight.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,6 +28,20 @@ public class GlobalExceptionHandler {
 
         response.put("message", mensagemErro);
         response.put("path", "/api/predict");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleJsonErrors(HttpMessageNotReadableException ex,
+                                                                HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "JSON Inválido ou Valor Incorreto");
+        response.put("message", "Um dos campos enviados contém um valor que não é aceito. Verifique erros de digitação nos" +
+                " Enums (ex: 'Yes', 'No', 'Month-to-month').");
+        response.put("path", request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

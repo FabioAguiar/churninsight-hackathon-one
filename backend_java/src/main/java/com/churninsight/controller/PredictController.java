@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/predict")
+@RequestMapping("/api/predict")
 public class PredictController {
 
     private final PredictService predictService;

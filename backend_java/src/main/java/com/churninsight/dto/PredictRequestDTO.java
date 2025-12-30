@@ -1,5 +1,9 @@
 package com.churninsight.dto;
 
+import com.churninsight.model.enums.ContractType;
+import com.churninsight.model.enums.InternetServiceType;
+import com.churninsight.model.enums.PaymentMethodType;
+import com.churninsight.model.enums.YesNo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -13,30 +17,30 @@ public class PredictRequestDTO {
     @Min(value = 0, message = "O tempo de contrato não pode ser negativo")
     private Integer tenure;
 
-    @NotBlank(message = "O tipo de contrato é obrigatório")
-    private String contract;
+    @NotNull(message = "O tipo de contrato é obrigatório")
+    private ContractType contract;
 
     @JsonProperty("internet_service")
-    @NotBlank(message = "O serviço de internet é obrigatório")
-    private String internetService;
+    @NotNull(message = "O serviço de internet é obrigatório")
+    private InternetServiceType internetService;
 
     @JsonProperty("online_security")
-    @NotBlank(message = "A segurança online é obrigatória")
-    private String onlineSecurity;
+    @NotNull(message = "A segurança online é obrigatória")
+    private YesNo onlineSecurity;
 
     @JsonProperty("tech_support")
-    @NotBlank(message = "O suporte técnico é obrigatório")
-    private String techSupport;
+    @NotNull(message = "O suporte técnico é obrigatório")
+    private YesNo techSupport;
 
     @JsonProperty("monthly_charges")
     @NotNull(message = "A cobrança mensal é obrigatória")
     private Double monthlyCharges;
 
     @JsonProperty("paperless_billing")
-    @NotBlank(message = "A opção de conta digital é obrigatória")
-    private String paperlessBilling;
+    @NotNull(message = "A opção de conta digital é obrigatória")
+    private YesNo paperlessBilling;
 
     @JsonProperty("payment_method")
-    @NotBlank(message = "O método de pagamento é obrigatório")
-    private String paymentMethod;
+    @NotNull(message = "O método de pagamento é obrigatório")
+    private PaymentMethodType paymentMethod;
 }

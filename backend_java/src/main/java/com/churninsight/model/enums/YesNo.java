@@ -1,4 +1,4 @@
-package com.churninsight.model.enums; // Confirme se o pacote está correto
+package com.churninsight.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
