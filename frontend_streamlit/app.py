@@ -99,7 +99,7 @@ integrantes = [
     "Lilian Moraes", 
     "Luedji Abayomi", 
     "Lucas Frigato", 
-    "Wenderson"
+    "Wenderson Lopes"
 ]
 integrantes.sort()
 integrantes_formatado = " • ".join(integrantes)
