@@ -1350,10 +1350,11 @@ def render_categorical_standardization_report(
         if len(items) > 4:
             rules_preview += f" … (+{len(items) - 4} regras)"
     else:
-        rules_preview = "—"
+        EMPTY_TXT = "Não aplicável (sem colunas textuais)"
+        rules_preview = EMPTY_TXT
 
-    cols_scope_txt = ", ".join([str(c) for c in cols_scope]) if cols_scope else "—"
-    cols_considered_txt = ", ".join([str(c) for c in cols_considered]) if cols_considered else "—"
+    cols_scope_txt = ", ".join([str(c) for c in cols_scope]) if cols_scope else EMPTY_TXT
+    cols_considered_txt = ", ".join([str(c) for c in cols_considered]) if cols_considered else EMPTY_TXT
 
     # -----------------------------
     # Render (padrão ci-panel)
@@ -2077,3 +2078,748 @@ def render_missing_imputation_report(
         return HTML(html)
     except Exception:
         return html
+
+
+# ============================================================
+# Seção 5 — Preparação para Modelagem (UI)
+# ============================================================
+def render_modeling_report(payload: dict, title: str = "Seção 5 — Preparação para Modelagem (Split + Auditoria)"):
+    """
+    Renderer UI-only para a Seção 5 (Split treino/teste e auditoria).
+
+    IMPORTANTE
+    ----------
+    Apesar do nome histórico `render_modeling_report`, esta função foi ajustada
+    para consumir o payload produzido pela função core da Seção 5:
+        `run_train_test_split(...)`
+
+    Este renderer:
+    - ❌ não treina modelos
+    - ❌ não faz encoding/scaling
+    - ❌ não transforma o target
+    - ✔️ apenas apresenta a decisão explícita e os diagnósticos auditáveis pós-split
+
+    Payload esperado (Seção 5)
+    --------------------------
+    - decision: dict
+        - test_size, random_state, shuffle, stratify, stratify_col (quando aplicável)
+        - audit_categorical_cardinality (opcional)
+    - split: dict
+        - X_train, X_test, y_train, y_test
+    - diagnostics: dict
+        - shapes: dict
+        - target_distribution: pd.DataFrame
+        - risk_checks: dict
+        - categorical_cardinality: pd.DataFrame (opcional)
+    """
+    import pandas as pd
+
+    if not isinstance(payload, dict):
+        raise TypeError("payload deve ser um dicionário.")
+
+    decision = payload.get("decision", {}) or {}
+    split = payload.get("split", {}) or {}
+    diagnostics = payload.get("diagnostics", {}) or {}
+
+    shapes = diagnostics.get("shapes", {}) or {}
+    target_distribution = diagnostics.get("target_distribution", None)
+    risk_checks = diagnostics.get("risk_checks", {}) or {}
+    categorical_cardinality = diagnostics.get("categorical_cardinality", None)
+
+    # -------------------------
+    # Helpers (HTML)
+    # -------------------------
+    def _safe(x) -> str:
+        s = "" if x is None else str(x)
+        return (
+            s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;")
+             .replace('"', "&quot;")
+             .replace("'", "&#39;")
+        )
+
+    def _card(title_txt: str, body_html: str) -> str:
+        # ✅ Renderiza o título do card (padrão visual/narrativo do notebook)
+        return f"""
+        <div class="ci-card">
+          <div class="ci-card-title">{_safe(title_txt)}</div>
+          <div class="ci-card-body">{body_html}</div>
+        </div>
+        """
+
+    def _df_table(df: pd.DataFrame, max_rows: int = 60) -> str:
+        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+            return "<span class='ci-muted'>—</span>"
+        return df.head(max_rows).to_html(index=False, escape=True, classes="ci-table")
+
+    def _kv(k: str, v) -> str:
+        return f"""
+        <div>
+          <div class="ci-k"><b>{_safe(k)}</b></div>
+          <div class="ci-v">{_safe(v)}</div>
+        </div>
+        """
+
+    def _shape_str(obj) -> str:
+        if obj is None:
+            return "—"
+        if isinstance(obj, dict):
+            if "rows" in obj and "cols" in obj:
+                return f"{obj['rows']} × {obj['cols']}"
+            if "rows" in obj and "cols" not in obj:
+                return f"{obj['rows']}"
+        return _safe(obj)
+
+    # -------------------------
+    # Extrai shapes de forma tolerante
+    # -------------------------
+    X_train = split.get("X_train", None)
+    X_test = split.get("X_test", None)
+    y_train = split.get("y_train", None)
+    y_test = split.get("y_test", None)
+
+    X_train_shape = shapes.get("X_train")
+    X_test_shape = shapes.get("X_test")
+    y_train_shape = shapes.get("y_train")
+    y_test_shape = shapes.get("y_test")
+
+    if X_train_shape is None and hasattr(X_train, "shape"):
+        X_train_shape = {"rows": int(X_train.shape[0]), "cols": int(X_train.shape[1])}
+    if X_test_shape is None and hasattr(X_test, "shape"):
+        X_test_shape = {"rows": int(X_test.shape[0]), "cols": int(X_test.shape[1])}
+    if y_train_shape is None and hasattr(y_train, "shape"):
+        y_train_shape = {"rows": int(y_train.shape[0])}
+    if y_test_shape is None and hasattr(y_test, "shape"):
+        y_test_shape = {"rows": int(y_test.shape[0])}
+
+    # -------------------------
+    # [S5.1] Card — Decisão Explícita do Split
+    # -------------------------
+    stratify = decision.get("stratify", "—")
+    stratify_col = decision.get("stratify_col", "—")
+
+    decision_html = f"""
+    <div class="ci-note">
+      Esta decisão deve ter sido declarada explicitamente no notebook. Nenhum parâmetro é inferido pela UI.
+    </div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("test_size", decision.get("test_size", "—"))}
+      {_kv("random_state", decision.get("random_state", "—"))}
+      {_kv("shuffle", decision.get("shuffle", "—"))}
+      {_kv("stratify", stratify)}
+      {_kv("stratify_col", stratify_col if stratify is True else "—")}
+      {_kv("audit_categorical_cardinality", decision.get("audit_categorical_cardinality", False))}
+    </div>
+    """
+
+    # -------------------------
+    # [S5.2] Card — Shapes de Treino e Teste
+    # -------------------------
+    shapes_html = f"""
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("X_train", _shape_str(X_train_shape))}
+      {_kv("X_test", _shape_str(X_test_shape))}
+      {_kv("y_train", _shape_str(y_train_shape))}
+      {_kv("y_test", _shape_str(y_test_shape))}
+      {_kv("n_features", shapes.get("n_features", "—"))}
+    </div>
+    """
+
+    # -------------------------
+    # [S5.3] Card — Distribuição do Target (Pré vs Pós-Split)
+    # -------------------------
+    target_html = _df_table(target_distribution, max_rows=30)
+
+    # -------------------------
+    # [S5.4] Card — Diagnóstico de Riscos Estruturais
+    # -------------------------
+    scope_integrity = (risk_checks.get("scope_integrity", {}) or {}) if isinstance(risk_checks, dict) else {}
+    target_balance = (risk_checks.get("target_balance", {}) or {}) if isinstance(risk_checks, dict) else {}
+
+    risks_html = f"""
+    <div class="ci-note">
+      Diagnóstico objetivo (sem ações automáticas). Este painel apenas expõe sinais.
+    </div>
+
+    <div class="ci-subtitle"><b>Integridade do escopo</b></div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("target_in_X_train", scope_integrity.get("target_in_X_train", "—"))}
+      {_kv("target_in_X_test", scope_integrity.get("target_in_X_test", "—"))}
+      {_kv("columns_match_scope_train", scope_integrity.get("columns_match_scope_train", "—"))}
+      {_kv("columns_match_scope_test", scope_integrity.get("columns_match_scope_test", "—"))}
+    </div>
+
+    <div class="ci-subtitle"><b>Distribuição mínima do target</b></div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("min_class_rate_all", target_balance.get("min_class_rate_all", "—"))}
+      {_kv("min_class_rate_train", target_balance.get("min_class_rate_train", "—"))}
+      {_kv("min_class_rate_test", target_balance.get("min_class_rate_test", "—"))}
+    </div>
+    """
+
+    # -------------------------
+    # [S5.5] Card — Cardinalidade Categórica Pós-Split (Opcional)
+    # -------------------------
+    cat_html = _df_table(categorical_cardinality, max_rows=60)
+
+    # -------------------------
+    # CSS (similar ao padrão)
+    # -------------------------
+    css = """
+    <style>
+      .ci-wrap { font-family: Arial, sans-serif; color: #111827; }
+
+      .ci-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width:900px) { .ci-grid-2 { grid-template-columns: 1fr; } }
+
+      .ci-card { border: 1px solid #e8edf3; border-radius: 14px; padding: 16px; background: #fff; margin-bottom: 16px; }
+      .ci-card-title { font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+      .ci-card-body { font-size: 13px; }
+
+      .ci-note { color: #6b7280; font-size: 13px; margin-bottom: 10px; line-height: 1.35; }
+      .ci-subtitle { margin-top: 10px; margin-bottom: 6px; font-size: 13px; color: #6b7280; }
+
+      .ci-k { font-size: 12px; color: #6b7280; }
+      .ci-v { font-size: 14px; overflow-wrap: anywhere; }
+
+      .ci-kvwrap { display: grid; gap: 10px; }
+      .ci-kvwrap-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+      @media (max-width: 900px) { .ci-kvwrap-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 600px) { .ci-kvwrap-compact { grid-template-columns: 1fr; } }
+
+      table.ci-table { width: 100%; border-collapse: collapse; }
+      table.ci-table th, table.ci-table td { padding: 8px; border-top: 1px solid #e8edf3; font-size: 13px; vertical-align: top; }
+      table.ci-table th { color: #6b7280; font-weight: 800; background: #fbfbfb; }
+
+      .ci-muted { color: #6b7280; }
+      .ci-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .ci-ul { margin: 8px 0 0 18px; }
+    </style>
+    """
+
+    # Card “capa” opcional (se você quiser manter o title global)
+    header_html = f"""
+    <div class="ci-note">
+      Esta seção é estritamente diagnóstica/estrutural. Nenhuma decisão de modelagem é tomada aqui.
+    </div>
+    """
+
+    html = f"""
+    {css}
+    <div class="ci-wrap">
+      <div class="ci-grid-2">
+        {_card("Decisão Explícita do Split", decision_html)}
+        {_card("Shapes de Treino e Teste", shapes_html)}
+      </div>
+      {_card("Distribuição do Target (Pré vs Pós-Split)", target_html)}
+      {_card("Diagnóstico de Riscos Estruturais", risks_html)}
+      {_card("Cardinalidade Categórica Pós-Split", cat_html)}
+    </div>
+    """
+
+    try:
+        from IPython.display import HTML
+        return HTML(html)
+    except Exception:
+        return html
+
+# ============================================================
+# Seção 6 — Representação para Modelagem Supervisionada (UI)
+# ============================================================
+def render_supervised_representation_report(
+    payload: dict,
+    title: str = "Seção 6 — Representação para Modelagem Supervisionada",
+):
+    """
+    Renderer UI-only para a Seção 6 do pipeline principal (N1):
+    Representação para Modelagem Supervisionada.
+
+    IMPORTANTE
+    ----------
+    Esta função é estritamente de apresentação:
+    - ❌ não treina modelos
+    - ❌ não compara algoritmos
+    - ❌ não define métricas finais
+    - ✔️ apenas expõe decisão explícita + auditorias pós-representação
+
+    Payload esperado (Seção 6)
+    --------------------------
+    - decision: dict
+    - representation: dict
+    - diagnostics: dict
+    """
+    import pandas as pd
+
+    if not isinstance(payload, dict):
+        raise TypeError("payload deve ser um dicionário.")
+
+    decision = payload.get("decision", {}) or {}
+    representation = payload.get("representation", {}) or {}
+    diagnostics = payload.get("diagnostics", {}) or {}
+
+    def _safe(x) -> str:
+        s = "" if x is None else str(x)
+        return (
+            s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;")
+             .replace('"', "&quot;")
+             .replace("'", "&#39;")
+        )
+
+    def _card(title_txt: str, body_html: str) -> str:
+        return f"""
+        <div class="ci-card">
+          <div class="ci-card-title">{_safe(title_txt)}</div>
+          <div class="ci-card-body">{body_html}</div>
+        </div>
+        """
+
+    def _kv(k: str, v) -> str:
+        return f"""
+        <div>
+          <div class="ci-k"><b>{_safe(k)}</b></div>
+          <div class="ci-v">{_safe(v)}</div>
+        </div>
+        """
+
+    def _shape_str(obj) -> str:
+        if obj is None:
+            return "—"
+        if isinstance(obj, dict):
+            if "rows" in obj and "cols" in obj:
+                return f"{obj['rows']} × {obj['cols']}"
+            if "rows" in obj and "cols" not in obj:
+                return f"{obj['rows']}"
+        return _safe(obj)
+
+    def _df_table(df: pd.DataFrame, max_rows: int = 60) -> str:
+        if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+            return "<span class='ci-muted'>—</span>"
+        return df.head(max_rows).to_html(index=False, escape=True, classes="ci-table")
+
+    def _list_preview(items, max_items: int = 16) -> str:
+        if not items:
+            return "<span class='ci-muted'>—</span>"
+        items = list(items)
+        shown = items[:max_items]
+        rest = len(items) - len(shown)
+        chips = "".join([f"<span class='ci-chip'>{_safe(i)}</span>" for i in shown])
+        more = f"<span class='ci-muted'>… (+{rest})</span>" if rest > 0 else ""
+        return f"<div class='ci-chips'>{chips}{more}</div>"
+
+    def _badge(ok: bool, ok_txt: str = "✓ OK", bad_txt: str = "⚠ Atenção") -> str:
+        cls = "ci-badge-ok" if ok else "ci-badge-warn"
+        txt = ok_txt if ok else bad_txt
+        return f"<span class='ci-badge {cls}'>{_safe(txt)}</span>"
+
+    shapes_before = diagnostics.get("shapes_before", {}) or {}
+    shapes_after = diagnostics.get("shapes_after", {}) or {}
+
+    n_features_before = diagnostics.get("n_features_before", "—")
+    n_features_after = diagnostics.get("n_features_after", "—")
+
+    consistency = diagnostics.get("train_test_consistency", {}) or {}
+    same_feature_count = bool(consistency.get("same_feature_count", False))
+    feature_names_match = bool(consistency.get("feature_names_match", False))
+    fit_on = diagnostics.get("fit_on", "—")
+
+    X_train_repr = representation.get("X_train")
+    X_test_repr = representation.get("X_test")
+    y_train_repr = representation.get("y_train")
+    y_test_repr = representation.get("y_test")
+
+    feature_names = representation.get("feature_names", []) or []
+    target_mapping = representation.get("target_mapping", decision.get("y", {}).get("mapping", {})) or {}
+
+    def _infer_shape(x):
+        try:
+            if hasattr(x, "shape") and x.shape is not None:
+                if len(x.shape) == 1:
+                    return {"rows": int(x.shape[0])}
+                return {"rows": int(x.shape[0]), "cols": int(x.shape[1])}
+        except Exception:
+            pass
+        return None
+
+    if not isinstance(shapes_before, dict):
+        shapes_before = {}
+    if not isinstance(shapes_after, dict):
+        shapes_after = {}
+
+    shapes_after.setdefault("X_train", _infer_shape(X_train_repr))
+    shapes_after.setdefault("X_test", _infer_shape(X_test_repr))
+    shapes_after.setdefault("y_train", _infer_shape(y_train_repr))
+    shapes_after.setdefault("y_test", _infer_shape(y_test_repr))
+
+    x_dec = decision.get("X", {}) or {}
+    x_cat = (x_dec.get("categorical", {}) or {})
+    x_num = (x_dec.get("numeric", {}) or {})
+
+    x_decision_html = f"""
+    <div class="ci-note">
+      Decisão declarada explicitamente no notebook. A UI não infere estratégias.
+    </div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("X.categorical.strategy", x_cat.get("strategy", "—"))}
+      {_kv("X.categorical.handle_unknown", x_cat.get("handle_unknown", "—"))}
+      {_kv("X.numeric.strategy", x_num.get("strategy", "—"))}
+      {_kv("fit_on", fit_on)}
+      {_kv("consistência (n_features)", same_feature_count)}
+      {_kv("consistência (feature_names)", feature_names_match)}
+    </div>
+    """
+
+    shapes_html = f"""
+    <div class="ci-subtitle"><b>Shapes (antes)</b></div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("X_train", _shape_str(shapes_before.get("X_train")))}
+      {_kv("X_test", _shape_str(shapes_before.get("X_test")))}
+      {_kv("n_features_before", n_features_before)}
+    </div>
+
+    <div class="ci-subtitle"><b>Shapes (depois)</b></div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("X_train", _shape_str(shapes_after.get("X_train")))}
+      {_kv("X_test", _shape_str(shapes_after.get("X_test")))}
+      {_kv("y_train", _shape_str(shapes_after.get("y_train")))}
+      {_kv("y_test", _shape_str(shapes_after.get("y_test")))}
+      {_kv("n_features_after", n_features_after)}
+    </div>
+
+    <div class="ci-note" style="margin-top:10px;">
+      {_badge(same_feature_count and feature_names_match, ok_txt="✓ Treino/Teste consistentes", bad_txt="⚠ Risco: inconsistência Treino/Teste")}
+      <span class="ci-muted" style="margin-left:8px;">Transformador ajustado apenas no treino (anti-leakage).</span>
+    </div>
+    """
+
+    y_dec = decision.get("y", {}) or {}
+    y_strategy = y_dec.get("strategy", "—")
+    y_dtype = y_dec.get("dtype", "—")
+
+    if isinstance(target_mapping, dict) and target_mapping:
+        mt = pd.DataFrame([{"raw": k, "encoded": v} for k, v in target_mapping.items()])
+        mapping_table = _df_table(mt, max_rows=30)
+    else:
+        mapping_table = "<span class='ci-muted'>—</span>"
+
+    y_html = f"""
+    <div class="ci-note">
+      O target é materializado explicitamente nesta seção, sem treinar modelos.
+    </div>
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("y.strategy", y_strategy)}
+      {_kv("y.dtype", y_dtype)}
+      {_kv("mapping_size", len(target_mapping) if isinstance(target_mapping, dict) else "—")}
+    </div>
+
+    <div class="ci-subtitle"><b>Mapping aplicado</b></div>
+    {mapping_table}
+    """
+
+    feat_preview_html = _list_preview(feature_names, max_items=16)
+
+    consolidation_html = f"""
+    <div class="ci-note">
+      Confirmação de prontidão para a Seção 7:
+      X e y estão representados e auditados, sem decisões de métrica/modelo.
+    </div>
+
+    <div class="ci-kvwrap ci-kvwrap-compact">
+      {_kv("n_feature_names", len(feature_names) if isinstance(feature_names, list) else "—")}
+      {_kv("n_features_after", n_features_after)}
+      {_kv("fit_on", fit_on)}
+      {_kv("train/test aligned", (same_feature_count and feature_names_match))}
+    </div>
+
+    <div class="ci-subtitle"><b>Preview de feature_names</b></div>
+    {feat_preview_html}
+
+    <div class="ci-note" style="margin-top:10px;">
+      <b>Decisões tomadas:</b> encoding de X, representação final de y.<br/>
+      <b>Decisões NÃO tomadas:</b> métrica principal, baselines, escolha/tuning de modelos.
+    </div>
+    """
+
+    css = """
+    <style>
+      .ci-wrap { font-family: Arial, sans-serif; color: #111827; }
+      .ci-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width:900px) { .ci-grid-2 { grid-template-columns: 1fr; } }
+
+      .ci-card { border: 1px solid #e8edf3; border-radius: 14px; padding: 16px; background: #fff; margin-bottom: 16px; }
+      .ci-card-title { font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+      .ci-card-body { font-size: 13px; }
+
+      .ci-note { color: #6b7280; font-size: 13px; margin-bottom: 10px; line-height: 1.35; }
+      .ci-subtitle { margin-top: 10px; margin-bottom: 6px; font-size: 13px; color: #6b7280; }
+
+      .ci-k { font-size: 12px; color: #6b7280; }
+      .ci-v { font-size: 14px; overflow-wrap: anywhere; }
+
+      .ci-kvwrap { display: grid; gap: 10px; }
+      .ci-kvwrap-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+      @media (max-width: 900px) { .ci-kvwrap-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 600px) { .ci-kvwrap-compact { grid-template-columns: 1fr; } }
+
+      table.ci-table { width: 100%; border-collapse: collapse; }
+      table.ci-table th, table.ci-table td { padding: 8px; border-top: 1px solid #e8edf3; font-size: 13px; vertical-align: top; }
+      table.ci-table th { color: #6b7280; font-weight: 800; background: #fbfbfb; }
+
+      .ci-muted { color: #6b7280; }
+
+      .ci-chips { display:flex; flex-wrap:wrap; gap:6px; }
+      .ci-chip {
+        padding:3px 8px; border-radius:999px;
+        border:1px solid #ededed; background:#fafafa;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size:12px;
+      }
+
+      .ci-badge {
+        display:inline-flex; align-items:center; gap:6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid #e8edf3;
+        font-size: 12px;
+        font-weight: 800;
+        background: #f8fafc;
+      }
+      .ci-badge-ok { color: #16a34a; border-color:#bbf7d0; background:#ecfdf5; }
+      .ci-badge-warn { color: #b45309; border-color:#fde68a; background:#fffbeb; }
+    </style>
+    """
+
+    html = f"""
+    {css}
+    <div class="ci-wrap">
+      <div class="ci-grid-2">
+        {_card("Decisão de Representação das Features (X)", x_decision_html)}
+        {_card("Execução do Pré-processamento (auditoria)", shapes_html)}
+      </div>
+      {_card("Decisão de Representação do Target (y)", y_html)}
+      {_card("Consolidação do Dataset Modelável", consolidation_html)}
+    </div>
+    """
+
+    try:
+        from IPython.display import HTML
+        return HTML(html)
+    except Exception:
+        return html
+
+
+
+# ============================================================
+# Seção 7 — Estratégia de Avaliação e Baselines
+# ============================================================
+
+def render_evaluation_report(
+    payload: dict,
+    title: str = "",
+):
+    """
+    UI-only: renderiza distribuição de classes, baselines e métricas.
+    Não calcula nada.
+    """
+    import pandas as pd
+    from IPython.display import HTML, display
+
+    decision = payload.get("decision", {}) or {}
+    class_dist = payload.get("class_distribution", {}) or {}
+    results = payload.get("baselines_results", []) or []
+
+    def _df_counts(d: dict, split_name: str) -> pd.DataFrame:
+        counts = (d.get(split_name, {}) or {}).get("counts", {}) or {}
+        pct = (d.get(split_name, {}) or {}).get("pct", {}) or {}
+        rows = []
+        for k in sorted(counts.keys()):
+            rows.append({"class": k, "count": counts[k], "pct": pct.get(k, 0.0)})
+        return pd.DataFrame(rows)
+
+    # tabelas
+    df_train = _df_counts(class_dist, "train")
+    df_test = _df_counts(class_dist, "test")
+
+    # baselines tabela métrica
+    metrics_rows = []
+    for r in results:
+        b = r.get("baseline", {})
+        m = r.get("metrics", {})
+        metrics_rows.append({
+            "baseline": b.get("name"),
+            "strategy": b.get("strategy"),
+            "accuracy": m.get("accuracy"),
+            "precision": m.get("precision"),
+            "recall": m.get("recall"),
+            "f1": m.get("f1"),
+        })
+    df_metrics = pd.DataFrame(metrics_rows)
+
+    html = f"""
+    <div class="ci-wrap">
+      <h2 style="margin:0 0 10px 0;">{title}</h2>
+
+      <div class="ci-card">
+        <div class="ci-card-title">Distribuição de classes</div>
+        <div class="ci-card-body">
+          <div class="ci-grid-2">
+            <div>
+              <div class="ci-muted" style="margin-bottom:6px;"><b>Treino</b></div>
+              {df_train.to_html(index=False, escape=True, classes="ci-table")}
+            </div>
+            <div>
+              <div class="ci-muted" style="margin-bottom:6px;"><b>Teste</b></div>
+              {df_test.to_html(index=False, escape=True, classes="ci-table")}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ci-card">
+        <div class="ci-card-title">Decisão de métricas</div>
+        <div class="ci-card-body">
+          <div><b>primary_metric:</b> {decision.get("primary_metric")}</div>
+          <div><b>secondary_metrics:</b> {decision.get("secondary_metrics")}</div>
+          <div><b>positive_label:</b> {decision.get("positive_label")}</div>
+        </div>
+      </div>
+
+      <div class="ci-card">
+        <div class="ci-card-title">Baselines e métricas</div>
+        <div class="ci-card-body">
+          {df_metrics.to_html(index=False, escape=True, classes="ci-table")}
+          <div class="ci-muted" style="margin-top:8px;">
+            Matrizes de confusão estão no payload (baselines_results[*].confusion_matrix).
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+    display(HTML(html))
+
+
+
+# ============================================================
+# Seção 8 — Seleção de Modelos e Hiperparâmetros (UI)
+# ============================================================
+
+from IPython.display import HTML, display  # garanta que isso existe no topo ou aqui
+
+
+def render_model_selection_report(
+    payload: dict,
+    title: str = "Seção 8 — Seleção de Modelos e Hiperparâmetros",
+) -> None:
+    """
+    Renderiza a auditoria da Seção 8 (Leaderboard + decisão).
+
+    Espera payload produzido por:
+    - src.models.model_selection.run_section8_model_selection
+    """
+    if not isinstance(payload, dict):
+        raise TypeError("payload deve ser um dict")
+
+    leaderboard = payload.get("leaderboard")
+    selection = payload.get("selection", {}) or {}
+    inherited = payload.get("inherited_decision", {}) or {}
+
+    selected_key = selection.get("selected_model_key")
+    primary_metric = (inherited.get("primary_metric") or "recall")
+    baseline_thr = selection.get("baseline_threshold")
+
+    # Leaderboard pode ser DataFrame (ideal) ou lista de dicts (fallback)
+    if leaderboard is None:
+        lb_rows = []
+    elif hasattr(leaderboard, "to_dict"):
+        lb_rows = leaderboard.to_dict(orient="records")
+    elif isinstance(leaderboard, list):
+        lb_rows = leaderboard
+    else:
+        lb_rows = []
+
+    def esc(x):
+        return "" if x is None else str(x).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    rows_html = []
+    for r in lb_rows:
+        model_key = r.get("model_key")
+        eligible = r.get("eligible", True)
+        tr_class = ""
+        if selected_key and model_key == selected_key:
+            tr_class = "selected"
+        elif eligible is False:
+            tr_class = "ineligible"
+
+        rows_html.append(
+            f"""
+            <tr class="{tr_class}">
+              <td>{esc(r.get("rank"))}</td>
+              <td>{esc(r.get("model_key"))}</td>
+              <td>{esc(r.get("display_name"))}</td>
+              <td>{esc(r.get(primary_metric))}</td>
+              <td>{esc(r.get("f1"))}</td>
+              <td>{esc(r.get("accuracy"))}</td>
+              <td>{esc(r.get("precision"))}</td>
+              <td>{esc(r.get("eligible"))}</td>
+              <td>{esc(r.get("train_mode"))}</td>
+            </tr>
+            """
+        )
+
+    html = f"""
+    <div style="font-family: Arial, sans-serif; color: #eaeaea;">
+      <div style="background:#111; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px;">
+        <div style="font-size:18px; font-weight:700; margin-bottom:10px;">{esc(title)}</div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+          <div style="background:#0b1220; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px;">
+            <div style="opacity:0.8; font-size:12px;">Métrica principal (S7)</div>
+            <div style="font-weight:700;">{esc(primary_metric)}</div>
+          </div>
+
+          <div style="background:#0b1220; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px;">
+            <div style="opacity:0.8; font-size:12px;">Gate baselines (threshold)</div>
+            <div style="font-weight:700;">{esc(baseline_thr)}</div>
+          </div>
+
+          <div style="background:#071a10; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px;">
+            <div style="opacity:0.8; font-size:12px;">Selecionado</div>
+            <div style="font-weight:700;">{esc(selected_key) if selected_key else "Nenhum (não superou baselines)"}</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>rank</th>
+                <th>model_key</th>
+                <th>display_name</th>
+                <th>{esc(primary_metric)}</th>
+                <th>f1</th>
+                <th>accuracy</th>
+                <th>precision</th>
+                <th>eligible</th>
+                <th>train_mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {''.join(rows_html)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .table-wrap { overflow-x:auto; }
+      .table { width: 100%; border-collapse: collapse; }
+      .table th, .table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; }
+      .table th { text-align: left; opacity: 0.85; }
+      tr.selected td { background: rgba(34,197,94,0.08); }
+      tr.ineligible td { background: rgba(245,158,11,0.06); opacity: 0.8; }
+    </style>
+    """
+    display(HTML(html))

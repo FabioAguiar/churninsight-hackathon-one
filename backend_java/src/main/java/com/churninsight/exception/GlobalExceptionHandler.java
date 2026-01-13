@@ -9,6 +9,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+import java.time.Instant;
+
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -26,7 +29,7 @@ public class GlobalExceptionHandler {
                 ex.getStatusCode().value(),
                 "Erro na Requisição",
                 ex.getReason(),
-                request.getRequestURI();
+                request.getRequestURI());
 
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
@@ -38,7 +41,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Dados Inválidos",
-                mensagemErro,
+                ex.getMessage(),
                 request.getRequestURI()
         );
 

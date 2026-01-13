@@ -15,7 +15,7 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
-from src.features.preprocess import preprocess_input
+from src.api_python.internal_contract import get_internal_contract, transform_api_payload_to_model_features
 from src.api_python.model_loader import get_model
 from src.api_python.schemas import PredictRequest
 
@@ -73,7 +73,8 @@ def predict_churn(payload: PredictRequest) -> Tuple[str, float]:
     input_dict: Dict = payload.model_dump(mode="json")
 
     # Apply official preprocessing/mapping (contract -> training schema)
-    X = preprocess_input(input_dict)
+    contract = get_internal_contract()
+    X = transform_api_payload_to_model_features(input_dict, contract)
 
     # Get loaded model (pipeline)
     model = get_model()
@@ -109,7 +110,8 @@ def predict_raw(input_data: Dict) -> Dict:
     Returns:
         Dict with prediction and rounded probability.
     """
-    X = preprocess_input(input_data)
+    contract = get_internal_contract()
+    X = transform_api_payload_to_model_features(input_data, contract)
     model = get_model()
 
     proba_raw = _extract_positive_proba(model, X)

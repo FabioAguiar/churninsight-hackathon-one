@@ -1,6 +1,7 @@
-version: "3.9"
-
 services:
+  # ----------------------------------------------------------
+  # FastAPI — Inferência
+  # ----------------------------------------------------------
   python-api:
     container_name: churn-python-api
     build:
@@ -12,6 +13,23 @@ services:
     networks:
       - churn-network
 
+    healthcheck:
+      # Healthcheck SEM curl (python nativo já existe na imagem)
+      # Usa /health, que é estável após o startup do app
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health').read()\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+
+  # ----------------------------------------------------------
+  # Java — Gateway / API de Negócio
+  # ----------------------------------------------------------
   java-api:
     container_name: churn-java-api
     build:
@@ -19,14 +37,38 @@ services:
       dockerfile: docker/java.Dockerfile
     ports:
       - "8080:8080"
-    depends_on:
-      - python-api
-    environment:
-      # URL interna do serviço FastAPI
-      PYTHON_API_URL: http://python-api:8001
     restart: unless-stopped
     networks:
       - churn-network
+    environment:
+      # URL interna do serviço Python (nome do serviço no compose)
+      CHURN_PYTHON_API_URL: http://python-api:8001
+    depends_on:
+      python-api:
+        condition: service_healthy
+    # IMPORTANTE:
+    # Seu /actuator/health não está habilitado/exposto (gera NoResourceFoundException),
+    # então removemos o healthcheck do Java para não bloquear o compose.
+    # (MVP/Demo: garantir subida completa > actuator)
+
+  # ----------------------------------------------------------
+  # Streamlit — Frontend
+  # ----------------------------------------------------------
+  frontend:
+    container_name: churn-frontend
+    build:
+      context: ..
+      dockerfile: docker/streamlit.Dockerfile
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    networks:
+      - churn-network
+    depends_on:
+      - java-api
+    environment:
+      # IMPORTANTE: usar o nome do serviço Java, não localhost
+      CHURN_JAVA_API_URL: http://java-api:8080
 
 networks:
   churn-network:

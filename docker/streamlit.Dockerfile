@@ -1,10 +1,10 @@
 # ============================================================
-# ChurnInsight — FastAPI Service (Python)
+# ChurnInsight — Streamlit Frontend
 # ============================================================
-# Imagem base enxuta com Python
+
 FROM python:3.11-slim
 
-# Evita arquivos .pyc e ativa logs imediatos
+# Evita arquivos .pyc e melhora logs em tempo real
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -12,26 +12,20 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # ------------------------------------------------------------
-# Dependências (copiadas primeiro para melhor cache)
+# Dependências do frontend
 # ------------------------------------------------------------
-COPY src/api_python/requirements.txt ./requirements.txt
+COPY frontend_streamlit/requirements.txt ./requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ------------------------------------------------------------
-# Código da aplicação
+# Código do frontend
 # ------------------------------------------------------------
-COPY src/ ./src/
-
-# Artefatos do modelo treinado
-COPY artifacts/ ./artifacts/
-
-# Contratos internos (OBRIGATÓRIO para inferência)
-COPY contracts/ ./contracts/
+COPY frontend_streamlit/ ./frontend_streamlit/
 
 # ------------------------------------------------------------
-# Exposição e startup
+# Exposição e inicialização
 # ------------------------------------------------------------
-EXPOSE 8001
+EXPOSE 8501
 
-CMD ["uvicorn", "src.api_python.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["streamlit", "run", "frontend_streamlit/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

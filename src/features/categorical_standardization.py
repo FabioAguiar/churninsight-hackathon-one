@@ -182,11 +182,17 @@ def apply_service_phrase_standardization(
     after: StructuralSnapshot = capture_structural_snapshot(df_out)
     impact_df = build_before_after_table(before, after)
 
-    changes_df = (
-        pd.DataFrame(audit_rows)
-        .sort_values(["cells_changed", "column"], ascending=[False, True])
-        .reset_index(drop=True)
-    )
+    # NOTE (robustez): quando não há colunas no escopo ou nenhuma mudança é aplicada,
+    # `audit_rows` pode ficar vazio. Nesse caso, `pd.DataFrame(audit_rows)` não terá
+    # colunas e uma chamada direta a `sort_values` causaria KeyError.
+    if len(audit_rows) == 0:
+        changes_df = pd.DataFrame(columns=["column", "rule_type", "cells_changed", "examples"])
+    else:
+        changes_df = (
+            pd.DataFrame(audit_rows)
+            .sort_values(["cells_changed", "column"], ascending=[False, True])
+            .reset_index(drop=True)
+        )
 
     meta = {
         "scoped_cols_considered": cols,

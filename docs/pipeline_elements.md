@@ -10,7 +10,7 @@ Enquanto o arquivo `pipeline_notebook.md` apresenta o pipeline como uma **narrat
 
 ## 🧭 Como usar este documento
 
-- Cada seção descreve **um único elemento visível no notebook**
+- Cada **subseção `[Sx.y]`** descreve **um único elemento visível no notebook**
 - O objetivo é tornar explícita a **lógica técnica implícita** de cada elemento
 - Este documento não descreve layout nem código linha a linha
 - Ele deve ser lido como material de apoio ao pipeline visual
@@ -21,7 +21,70 @@ Enquanto o arquivo `pipeline_notebook.md` apresenta o pipeline como uma **narrat
 
 ---
 
+## Correspondência Notebook ↔ Documento Técnico
+
+Este documento (`pipeline_elements.md`) é a **fonte canônica técnica** dos elementos exibidos no `pipeline_notebook.md`.
+
+A relação entre os dois artefatos segue estas regras:
+
+- Todo **card/indicador/elemento** exibido no notebook possui uma seção `[Sx.y]` correspondente aqui.
+- O notebook pode conter **elementos narrativos** (observações, transições, perguntas-guia) que não produzem payloads, mas possuem papel técnico explícito.
+- Cada seção do notebook possui uma **Âncora visual canônica** (imagem) que funciona como **mapa visual** para interpretação dos elementos `[Sx.*]` descritos neste documento.
+
+---
+
+## Elementos Narrativos do Pipeline
+
+Além dos elementos visuais (cards, indicadores e elementos), o pipeline reconhece **elementos narrativos formais** no notebook, utilizados para garantir clareza semântica e continuidade entre etapas.
+
+Esses elementos **não produzem payloads**, mas possuem papel técnico explícito no pipeline.
+
+### Tipo: Observação geral da seção
+
+- Função: Consolidar o significado semântico dos cards apresentados e declarar o estado do dataset ao final da seção.
+- Produz artefato: ❌ Não
+- Impacta execução: ❌ Não
+- Papel técnico: Contextualização e fechamento semântico.
+
+### Tipo: Transição de seção
+
+- Função: Declarar o estado do dataset ao final de uma etapa e justificar o avanço para a próxima.
+- Produz artefato: ❌ Não
+- Impacta execução: ❌ Não
+- Papel técnico: Continuidade semântica e rastreabilidade do fluxo.
+
+---
+
+## Elementos de Execução Técnica Não-Visual (Sx.pre)
+
+Algumas seções executam uma fase técnica obrigatória **antes** de renderizar qualquer elemento visual. Esses elementos são identificados pelo sufixo `.pre`.
+
+Características:
+
+- Não geram cards visuais
+- Não possuem âncora visual própria
+- São executados antes da renderização da seção correspondente
+- Produzem dados intermediários consumidos pelos cards da seção
+
+Exemplos (estado atual do pipeline):
+
+- `S2.pre` — Validações estruturais e tipagem
+- `S3.pre` — Aplicação de contrato, escopo e diagnóstico de features
+- `S4.pre` — Preparação e execução de imputação auditável
+
+
 # Seção 1 — Ingestão e Diagnóstico Inicial
+
+
+### Correspondência com o Pipeline Visual
+
+Esta seção corresponde diretamente à **Seção 1 — Ingestão** apresentada no arquivo `pipeline_notebook.md`.
+
+- **Âncora visual canônica:** `./images/card_s1_ingestao_diagnostico_inicial.png`
+- **Indexação visual:** Cards numerados de **1️⃣ a 5️⃣**
+- **Função da âncora:** servir como **mapa visual** de referência para interpretação dos elementos desta seção (`[S1.*]`).
+
+> 📌 A âncora visual não é decorativa: ela define o **espaço semântico e visual** no qual os elementos técnicos desta seção devem ser interpretados.
 
 Esta seção documenta os elementos responsáveis por **descrever o estado inicial do dataset logo após a ingestão**, sem aplicar transformações ou pré-processamentos.
 
@@ -298,6 +361,17 @@ A tabela exibida utiliza (na ordem atual do UI):
 
 # Seção 2 — Qualidade Estrutural & Tipagem
 
+
+### Correspondência com o Pipeline Visual
+
+Esta seção corresponde diretamente à **Seção 2 — Qualidade Estrutural & Tipagem** apresentada no arquivo `pipeline_notebook.md`.
+
+- **Âncora visual canônica:** `./images/card_s2_qualidade_estrutural_tipagem.png`
+- **Indexação visual:** Cards numerados de **1️⃣ a 4️⃣** (além do `S2.pre`)
+- **Função da âncora:** servir como **mapa visual** de referência para interpretação dos elementos desta seção (`[S2.*]`).
+
+> 📌 A âncora visual não é decorativa: ela define o **espaço semântico e visual** no qual os elementos técnicos desta seção devem ser interpretados.
+
 Esta seção documenta os elementos responsáveis por **avaliar e consolidar a qualidade estrutural do dataset após a ingestão**, com foco em impactos técnicos decorrentes de conversões de tipo, verificações de integridade básica e efeitos colaterais como introdução de valores nulos.
 
 Diferentemente da Seção 1, que possui caráter **puramente diagnóstico**, os elementos aqui definidos **podem modificar o DataFrame**, porém **sem alterar sua semântica de negócio**.
@@ -347,6 +421,7 @@ src/data/quality_typing.py
 
 ---
 
+<a id="s20-contrato-ui-secao-2"></a>
 ## [S2.0] Contrato de UI da Seção 2 (artefatos esperados)
 
 **Referência no pipeline visual:**  
@@ -581,6 +656,17 @@ src/reporting/ui.py
 
 # Seção 3 — Conformidade ao Contrato de Entrada (API), Diagnóstico de Features & Padronização Categórica (Diagnóstico)
 
+
+### Correspondência com o Pipeline Visual
+
+Esta seção corresponde diretamente à **Seção 3 — Conformidade ao Contrato & Preparação Semântica** apresentada no arquivo `pipeline_notebook.md`.
+
+- **Âncora visual canônica:** `./images/card_s3_conformidade_contrato_api_01.png`
+- **Indexação visual:** Cards numerados de **1️⃣ a 7️⃣** (além do `S3.pre`)
+- **Função da âncora:** servir como **mapa visual** de referência para interpretação dos elementos desta seção (`[S3.*]`).
+
+> 📌 A âncora visual não é decorativa: ela define o **espaço semântico e visual** no qual os elementos técnicos desta seção devem ser interpretados.
+
 Esta seção documenta os elementos responsáveis por **estabelecer o escopo semântico do pipeline**, conectando o dataset **tecnicamente validado** nas etapas anteriores ao **contrato formal de entrada da API**, além de realizar um **diagnóstico categórico inicial**.
 
 Nenhuma transformação semântica ou codificação é aplicada nesta etapa.  
@@ -642,6 +728,7 @@ src/features/contract_and_candidates.py
 
 ---
 
+<a id="s30-contrato-ui-secao-3"></a>
 ## [S3.0] Contrato de UI da Seção 3 (payload esperado)
 
 **Referência no pipeline visual:**  
@@ -1090,12 +1177,24 @@ A seguir está a Seção 3.2 completa (execução da padronização), no mesmo p
 
 # Seção 3.2 — Padronização Categórica (Execução)
 
+
+### Correspondência com o Pipeline Visual
+
+Esta seção corresponde diretamente à **Seção 3.2 — Padronização Categórica (Execução)** apresentada no arquivo `pipeline_notebook.md`.
+
+- **Âncora visual canônica:** `./images/card_s3_padronizacao_categorica_execucao.png`
+- **Indexação visual:** Cards numerados de **S3.9 a S3.13** (além do `S3.2.pre`)
+- **Função da âncora:** servir como **mapa visual** de referência para interpretação dos elementos desta seção (`[S3.2.*]`).
+
+> 📌 A âncora visual não é decorativa: ela define o **espaço semântico e visual** no qual os elementos técnicos desta seção devem ser interpretados.
+
 Esta seção documenta os elementos responsáveis por executar a **padronização categórica declarada**, derivada explicitamente do diagnóstico apresentado na Seção 3 (**S3.1–S3.7**).
 
 Diferentemente da etapa diagnóstica, aqui ocorre **transformação efetiva** no DataFrame, porém restrita ao **escopo semântico** (features do contrato) e **sem encoding**.
 
 ---
 
+<a id="s32pre-execucao-padronizacao-categorica"></a>
 ## [S3.2.pre] Fase de Execução Técnica — Padronização Categórica (Execução)
 
 **Referência no pipeline visual:**  
@@ -1156,6 +1255,7 @@ src/reporting/ui.py
 
 ---
 
+<a id="s38-contrato-ui-secao-32"></a>
 ## [S3.8] Contrato de UI da Seção 3.2 (payload esperado)
 
 **Referência no pipeline visual:**  
@@ -1458,8 +1558,15 @@ Nenhum encoding é aplicado: a saída desta seção é um dataset semanticamente
 
 ---
 
-## [S3.14] Card — Auditoria do Target (diagnóstico supervisionado)
+### Correspondência com o Pipeline Visual
 
+Este elemento corresponde ao card exibido no `pipeline_notebook.md` na **Seção 3.3 — Auditoria do Target (diagnóstico supervisionado)**.
+
+- **Âncora visual canônica:** `./images/card_s3_auditoria_target.png`
+- **Indexação visual:** Card **S3.14**
+- **Função da âncora:** servir como referência visual do encerramento supervisionado da Seção 3.
+
+## [S3.14] Card — Auditoria do Target (diagnóstico supervisionado)
 Este elemento representa a **auditoria diagnóstica da variável-alvo (target)**, encerrando a Seção 3 do pipeline.
 
 Diferente das auditorias anteriores — voltadas às features — esta etapa atua sobre o **alvo supervisionado**, verificando se ele está **presente, consistente e semanticamente adequado** para a fase de modelagem.
@@ -1614,7 +1721,19 @@ Este card aparece ao final da **Seção 3 — Conformidade ao Contrato & Diagnó
 
 ---
 
+<a id="secao-4-inicio"></a>
 # Seção 4 — Tratamento de Dados Faltantes (Execução)
+
+
+### Correspondência com o Pipeline Visual
+
+Esta seção corresponde diretamente à **Seção 4 — Tratamento de Dados Faltantes (Execução)** apresentada no arquivo `pipeline_notebook.md`.
+
+- **Âncora visual canônica:** `./images/card_s4_tratamento_dados_faltantes_execucao.png`
+- **Indexação visual:** Cards numerados de **S4.1 a S4.5** (além do `S4.pre`)
+- **Função da âncora:** servir como **mapa visual** de referência para interpretação dos elementos desta seção (`[S4.*]`).
+
+> 📌 A âncora visual não é decorativa: ela define o **espaço semântico e visual** no qual os elementos técnicos desta seção devem ser interpretados.
 
 Esta seção documenta a **execução efetiva da imputação de dados faltantes**, realizada de forma **explícita, controlada e auditável**, respeitando integralmente o escopo semântico definido nas seções anteriores do pipeline.
 
@@ -1665,6 +1784,7 @@ src/reporting/ui.py
 
 ---
 
+<a id="s40-contrato-ui-secao-4"></a>
 ## [S4.0] Contrato de UI da Seção 4 (payload esperado)
 
 O renderer da Seção 4 consome um `payload: dict` com os seguintes campos:
@@ -1769,3 +1889,776 @@ Encerrar a Seção 4 com um **relatório auditável por coluna**, permitindo ver
 - O escopo é estritamente limitado às features do contrato.
 - O target é explicitamente preservado.
 - A saída desta seção está pronta para etapas posteriores (encoding, scaling e modelagem).
+
+---
+
+## 🔹 Seção 5 — Preparação para Modelagem
+
+Esta seção marca a transição entre o **pré-processamento semântico concluído** e a futura etapa de modelagem supervisionada.
+
+Seu objetivo **não é treinar modelos**, nem definir representações finais do target, mas sim:
+
+- preparar estruturalmente o dataset para treino futuro;
+- separar explicitamente features (`X`) e target (`y`);
+- aplicar um split reprodutível e auditável;
+- diagnosticar os impactos estruturais e distributivos dessa separação.
+
+⚠️ Nenhuma transformação irreversível é permitida nesta seção.
+
+Todo o processamento aqui respeita rigorosamente o padrão:
+
+**diagnóstico → decisão explícita → execução → auditoria**
+
+---
+
+<a id="secao-5-inicio"></a>
+
+# Seção 5 — Preparação para Modelagem
+
+Esta seção marca a transição entre o **pré-processamento semântico concluído** e a futura etapa de modelagem supervisionada.
+
+Seu objetivo **não é treinar modelos**, nem definir representações finais do target, mas sim:
+
+- preparar estruturalmente o dataset para treino futuro;
+- separar explicitamente features (`X`) e target (`y`);
+- aplicar um split reprodutível e auditável;
+- diagnosticar os impactos estruturais e distributivos dessa separação.
+
+⚠️ Nenhuma transformação irreversível é permitida nesta seção.
+
+Todo o processamento aqui respeita rigorosamente o padrão:
+
+**diagnóstico → decisão explícita → execução → auditoria**
+
+---
+
+<a id="s50-contrato-ui-preparacao-modelagem"></a>
+
+## [S5.0] Contrato de UI — Preparação para Modelagem
+
+Define o contrato de dados esperado para execução e auditoria da Seção 5.
+
+### Entradas obrigatórias
+
+- **`payload["df"]`**  
+  Dataset completo ao final da Seção 4, já validado, tipado e com imputações irreversíveis concluídas **apenas nas features**.
+
+- **`payload["scope"]`**  
+  Escopo semântico do dataset, contendo explicitamente:
+  - `features`: lista de colunas de entrada (`X`)
+  - `target`: coluna alvo (`y`)
+
+- **`payload["decision"]`**  
+  Decisão explícita sobre o split treino/teste, contendo:
+  - `test_size`
+  - `random_state`
+  - `shuffle`
+  - `stratify` (boolean)
+  - `stratify_col` (obrigatório apenas se `stratify = true`)
+
+### Saídas obrigatórias
+
+- **`payload["split"]`**
+  Artefatos estruturais do split:
+  - `X_train`, `X_test`
+  - `y_train`, `y_test`
+
+- **`payload["diagnostics"]`**
+  Consolidação dos diagnósticos auditáveis da seção:
+  - `shapes`
+  - `target_distribution`
+  - `risk_checks`
+  - `categorical_cardinality` (opcional)
+
+---
+
+<a id="s51pre-execucao-tecnica-separacao-split"></a>
+
+## [S5.1.pre] Execução Técnica — Separação e Split
+
+Fase técnica **não visual**, responsável exclusivamente por executar o split após a decisão explícita ter sido declarada.
+
+### Responsabilidades
+
+- Separar o dataset em:
+  - `X` = colunas definidas em `scope.features`
+  - `y` = coluna definida em `scope.target`
+- Aplicar `train_test_split` **exatamente conforme a decisão declarada**
+- Garantir:
+  - ausência do target em `X`
+  - preservação dos valores originais (nenhuma transformação)
+  - reprodutibilidade do split
+
+### Restrições semânticas
+
+- Nenhuma inferência automática é permitida
+- Nenhuma transformação de valores é realizada
+- Nenhuma decisão pode ser tomada nesta fase
+
+---
+
+<a id="s51-card-decisao-explicita-split"></a>
+
+## [S5.1] Card — Decisão Explícita do Split
+
+Elemento visual que documenta, de forma auditável, a decisão tomada para separação treino/teste.
+
+### Conteúdo mínimo
+
+- `test_size`
+- `random_state`
+- `shuffle`
+- `stratify`
+- `stratify_col` (se aplicável)
+- Dimensão do dataset (derivada do DataFrame de entrada)
+
+Este card representa **a decisão consciente** que governa toda a execução da Seção 5.
+
+---
+
+<a id="s52-card-shapes-treino-teste"></a>
+
+## [S5.2] Card — Shapes de Treino e Teste
+
+Diagnóstico estrutural do resultado do split.
+
+### Conteúdo
+
+- Shape de `X_train`
+- Shape de `X_test`
+- Shape de `y_train`
+- Shape de `y_test`
+- Número total de features (`len(scope.features)`)
+
+⚠️ Nenhuma interpretação é realizada neste card.
+
+---
+
+<a id="s53-card-distribuicao-target-pre-pos-split"></a>
+
+## [S5.3] Card — Distribuição do Target (Pré vs Pós-Split)
+
+Auditoria comparativa da distribuição do target:
+
+- Dataset completo
+- Conjunto de treino
+- Conjunto de teste
+
+### Conteúdo
+
+- Contagem absoluta por classe
+- Proporção relativa (%)
+- Diferença absoluta e percentual entre:
+  - geral vs treino
+  - geral vs teste
+
+Este card permite identificar **impactos distributivos do split**, sem induzir decisões automáticas.
+
+---
+
+<a id="s54-card-diagnostico-riscos-estruturais"></a>
+
+## [S5.4] Card — Diagnóstico de Riscos Estruturais
+
+Diagnóstico objetivo de sinais de risco detectáveis após o split.
+
+### Verificações mínimas
+
+- **Integridade do escopo**
+  - Target não presente em `X_train` / `X_test`
+  - Colunas de `X` exatamente iguais a `scope.features`
+
+- **Distribuição mínima do target**
+  - Proporção da menor classe (geral / treino / teste)
+
+- **Integridade do split**
+  - Ausência de vazamento estrutural direto (target presente em `X`)
+
+⚠️ Este card **não toma decisões**, apenas expõe sinais.
+
+---
+
+<a id="s55-card-cardinalidade-categorica-pos-split"></a>
+
+## [S5.5] Card — Cardinalidade Categórica Pós-Split (Opcional)
+
+Auditoria da cardinalidade das features categóricas após o split.
+
+### Conteúdo (quando aplicável)
+
+- Número de categorias únicas por feature:
+  - treino
+  - teste
+- Identificação de categorias presentes no teste e ausentes no treino
+
+Este diagnóstico antecipa **riscos potenciais para etapas futuras**, sem executar encoding ou transformação.
+
+---
+
+## Encerramento Semântico da Seção 5
+
+Ao final desta seção, o pipeline deve ser capaz de responder com clareza:
+
+- O dataset está estruturalmente pronto para treino?
+- Como o split impactou a distribuição do target?
+- Existem sinais objetivos de risco?
+- Quais decisões ainda permanecem em aberto?
+
+⚠️ Sem essas respostas, a Seção 6 **não pode ser iniciada**.
+
+Nenhuma decisão de modelagem é tomada nesta etapa.
+
+---
+
+# 6️⃣ Seção 6 — Representação para Modelagem Supervisionada
+
+Esta seção materializa, de forma **explícita e auditável**, como os dados serão representados para aprendizado supervisionado,
+atuando como ponte formal entre:
+
+- **Seção 5** (dados estruturais prontos + split executado) e
+- **Seção 7** (estratégia de avaliação, métricas e baselines).
+
+⚠️ **Escopo rígido:** esta seção **não treina modelos**, **não compara algoritmos**, **não define métricas finais** e **não realiza tuning**.
+Ela apenas define e executa a **representação** de `X` e `y` após decisão explícita.
+
+---
+
+## [S6.0] Contrato da Seção (inputs, outputs e garantias)
+
+### Inputs (pré-requisitos invariáveis)
+Origem: **payload final da Seção 5**.
+
+- `split.X_train` (DataFrame)
+- `split.X_test` (DataFrame)
+- `split.y_train` (Series)
+- `split.y_test` (Series)
+- `scope` (NormalizationScope) com:
+  - `scope.features` (lista ordenada de features)
+  - `scope.target` (coluna target)
+
+> 📌 A Seção 6 assume que o split já foi executado e auditado na Seção 5.
+
+### Decisão explícita (entrada declarada no notebook)
+A execução desta seção depende de uma decisão declarada no notebook, sem inferência automática.
+
+Campos mínimos esperados:
+
+- `decision.X.categorical.strategy` (ex.: `onehot`)
+- `decision.X.categorical.handle_unknown` (ex.: `ignore`)
+- `decision.X.numeric.strategy` (ex.: `passthrough` ou `standard_scaler`)
+- `decision.y.strategy` (ex.: `map_binary`)
+- `decision.y.mapping` (ex.: `{"No": 0, "Yes": 1}` **ou** `{0: 0, 1: 1}`, conforme domínio observado)
+- `decision.y.dtype` (ex.: `int64`)
+
+> ✅ Regra de segurança: `decision.y.mapping` deve cobrir **100% dos valores observados** em `y_train` e `y_test`.  
+> Se algum valor observado não estiver no mapping, a execução deve ser interrompida por segurança.
+
+### Outputs (artefatos produzidos)
+A seção deve produzir um payload consolidado contendo:
+
+- `representation.X_train` / `representation.X_test`
+- `representation.y_train` / `representation.y_test`
+- `representation.feature_names`
+- `representation.transformer`
+- `representation.target_mapping` (quando aplicável)
+- `diagnostics` (auditorias pós-representação)
+
+### Garantias semânticas (invariantes)
+- **Anti-leakage:** qualquer ajuste (`fit`) de transformadores ocorre **somente no treino**.
+- **Consistência:** `X_train` e `X_test` devem resultar em **mesma dimensionalidade** e **mesma base de features**.
+- **Transparência:** toda transformação é consequência direta de decisão explícita.
+- **Nenhuma decisão de modelagem** é tomada nesta seção.
+
+---
+
+### 🔧 Padronização de nomenclatura (Seção 6)
+
+A partir desta seção, todos os artefatos de saída relacionados à representação supervisionada
+devem ser referenciados **exclusivamente** dentro do namespace `representation`, seguindo o padrão:
+
+- `representation.X_train`
+- `representation.X_test`
+- `representation.y_train`
+- `representation.y_test`
+- `representation.feature_names`
+- `representation.transformer`
+
+Termos como `X_train_repr` / `y_train_repr` devem ser considerados apenas **aliases informais**
+e não devem aparecer na documentação técnica canônica.
+
+---
+
+## [S6.1] Decisão de Representação das Features (X)
+
+Esta etapa registra, de forma rastreável, como `X` será representado para modelagem supervisionada.
+
+### Diagnóstico (entrada)
+- `X_train` e `X_test` devem estar alinhados ao `scope.features` (mesma ordem e conjunto).
+- Tipos finais devem refletir o estado pós-Seção 5 (sem encoding/scaling aplicados anteriormente).
+
+### Decisão explícita (exemplo canônico)
+- Categóricas: `OneHotEncoder(handle_unknown="ignore")`
+- Numéricas: `passthrough` (sem scaling por padrão nesta fase)
+
+> 📌 Qualquer outra estratégia (ex.: scaling) só é permitida se for declarada explicitamente em `decision`.
+
+### Justificativa (sem antecipar Seção 7/8)
+- A representação deve ser **estável** e **compatível com múltiplos modelos**, sem assumir métrica ou algoritmo.
+- `handle_unknown="ignore"` é uma decisão de robustez para categorias presentes no teste e ausentes no treino.
+
+---
+
+## [S6.2] Execução do Pré-processamento (após decisão)
+
+Esta etapa executa a transformação **somente após** a decisão estar declarada.
+
+### Procedimento canônico (anti-leakage)
+1. Construir transformador de `X` (ex.: `ColumnTransformer`) com rotas:
+   - categóricas → encoder
+   - numéricas → passthrough (ou scaler declarado)
+2. `fit` do transformador em `X_train` **apenas**
+3. `transform` em `X_train` e `X_test`
+4. Extração de `feature_names` (ordem estável, rastreável)
+
+### Auditorias obrigatórias pós-execução
+- Shapes antes vs depois (`X_train`, `X_test`)
+- `n_features_before` vs `n_features_after`
+- Consistência treino/teste:
+  - `same_feature_count == True`
+  - `feature_names_match == True`
+- Registro explícito:
+  - `fit_on: "train_only"`
+
+> ⚠️ Qualquer inconsistência entre treino e teste nesta fase deve interromper o pipeline (erro), pois compromete a validade da avaliação supervisionada.
+
+---
+
+## [S6.3] Decisão de Representação do Target (y)
+
+Esta etapa define explicitamente como o target será representado para treinamento e avaliação.
+
+### Diagnóstico do target
+- Confirmar domínio observado em `y_train` e `y_test`
+- Confirmar ausência de valores fora do mapping declarado (quando aplicável)
+
+### Decisão explícita (exemplo canônico)
+- Estratégia: `map_binary`
+- Tipo final: `int64`
+- Mapping (conforme domínio observado):
+  - Dataset Telco (texto): `{"No": 0, "Yes": 1}`
+  - Dataset Bancário (numérico): `{0: 0, 1: 1}`
+
+> 📌 Quando o target já vem binário (0/1), o mapping pode ser uma **função identidade** (0→0, 1→1), usada para **materializar explicitamente** a representação, mantendo rastreabilidade e coerência com o contrato do pipeline.
+
+### Garantias
+- A codificação deve ser **determinística** e **rastreadora** (mapping exibido).
+- A transformação deve ser aplicada de forma consistente em treino e teste.
+- Nenhuma inferência automática (ex.: ordenar labels alfabeticamente) é permitida.
+
+---
+
+## [S6.4] Consolidação do Dataset Modelável (pronto para Seção 7)
+
+Esta etapa encerra a Seção 6 consolidando o estado final modelável, sem decisões de avaliação/modelo.
+
+### Artefatos finais consolidados
+- `representation.X_train` e `representation.X_test` com mesma dimensionalidade
+- `representation.y_train` e `representation.y_test` codificados conforme decisão
+- `representation.feature_names` (base final de features)
+- `representation.transformer` ajustado no treino (reutilizável na inferência)
+
+### Respostas que o pipeline deve conseguir fornecer ao final
+- Como `X` está representado?
+- Como `y` está representado?
+- Quantas features existem agora?
+- Treino e teste estão consistentes?
+- Quais decisões foram tomadas?
+- Quais decisões **não** foram tomadas?
+
+### Declaração explícita do que NÃO foi feito (limites da seção)
+- ❌ Definição de métrica principal
+- ❌ Treinamento de modelos (exceto “fit” do transformador de features)
+- ❌ Baselines (DummyClassifier) e comparação
+- ❌ GridSearch / tuning / ranking
+
+---
+
+## Observação geral da Seção 6
+
+A Seção 6 encerra com o dataset **representado e auditado**, estabelecendo as condições mínimas para iniciar a Seção 7,
+onde serão definidas métricas e baselines.
+
+> ✅ Se `X` e `y` não estiverem representados de forma explícita e consistente, a Seção 7 **não deve** ser iniciada.
+
+---
+
+# Seção 7 — Estratégia de Avaliação e Baselines
+
+## [S7.0] Contrato da Seção
+
+### Objetivo
+Definir explicitamente **o que significa ser bom** para o problema de churn bancário antes de qualquer comparação entre modelos.
+
+Esta seção estabelece:
+- critérios de avaliação,
+- métrica principal e métricas secundárias,
+- baselines mínimos aceitáveis,
+- e os limites claros do que **não** é decidido aqui.
+
+Nenhuma decisão implícita é permitida.
+
+### Inputs
+- `representation.X_train`
+- `representation.X_test`
+- `representation.y_train`
+- `representation.y_test`  
+(Resultantes da Seção 6, já auditadas e congeladas)
+
+### Outputs
+- Métrica principal definida (ou regra explícita de decisão entre métricas)
+- Métricas secundárias registradas
+- Resultados de baselines
+- Artefatos auditáveis:
+  - distribuição de classes
+  - matriz de confusão (baselines)
+  - relatório de métricas
+
+### Funções envolvidas
+- Core: `run_section7_evaluation_and_baselines`
+- UI: `render_section7_evaluation_report`
+
+### Garantias
+- Nenhum modelo real é comparado
+- Nenhum tuning é realizado
+- Nenhuma feature é criada ou alterada
+- Nenhum threshold é ajustado
+
+### Limites
+- Esta seção **não seleciona modelo**
+- Esta seção **não ranqueia algoritmos**
+- Esta seção **não otimiza score**
+
+---
+
+## [S7.1] Diagnóstico do Problema e Custo do Erro
+
+### Classe Positiva
+- `churn = 1`
+
+### Contexto do Problema
+O churn bancário representa a perda de clientes ativos.
+Erros de classificação possuem impactos assimétricos:
+
+- **Falso Negativo (FN)**  
+  Cliente que iria sair é classificado como não churn → nenhuma ação preventiva é tomada.
+- **Falso Positivo (FP)**  
+  Cliente fiel é classificado como churn → possível custo operacional desnecessário.
+
+### Avaliação do Custo Relativo
+- FN tende a ser **mais custoso** que FP
+- Retenção tardia geralmente é mais cara do que prevenção antecipada
+
+📌 Conclusão:  
+Métricas sensíveis à classe positiva devem ser consideradas com prioridade.
+
+---
+
+## [S7.2] Decisão de Métricas
+
+### Métricas Candidatas
+- Accuracy
+- Precision (classe positiva)
+- Recall (classe positiva)
+- F1-score
+- ROC-AUC
+
+### Decisão
+- **Métrica principal:** `Recall (classe positiva)`
+- **Métrica secundária:** `F1-score`
+
+### Regra Explícita
+O modelo só poderá ser considerado aceitável na Seção 8 se:
+- superar **ambos os baselines** na métrica principal (Recall),
+- sem degradação crítica de Precision (avaliada qualitativamente).
+
+---
+
+## [S7.3] Baselines
+
+### Objetivo do Baseline
+Estabelecer um **piso mínimo** de desempenho.
+Nenhum modelo real pode ser avaliado sem superar o baseline.
+
+### Baselines Definidos
+- `DummyClassifier(strategy="most_frequent")`
+- `DummyClassifier(strategy="stratified")`
+
+📌 Regra:  
+Qualquer modelo futuro deve **superar ambos os baselines**
+na métrica principal definida.
+
+---
+
+## [S7.4] Execução Leve e Auditoria
+
+### Diagnósticos Gerados
+- Distribuição de classes em treino e teste
+- Predições dos baselines
+- Matrizes de confusão
+- Relatório de métricas:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1-score
+
+### Auditoria
+Todos os resultados devem ser:
+- reproduzíveis,
+- registrados,
+- interpretáveis sem contexto externo.
+
+Nenhuma inferência automática é permitida.
+
+---
+
+## [S7.5] Fechamento da Seção
+
+### Decisões Tomadas
+- Métrica principal definida: **Recall**
+- Métrica secundária: **F1-score**
+- Baselines estabelecidos e executados
+- Trade-off FN > FP explicitamente aceito
+
+### Decisões Não Tomadas
+- Escolha de modelo
+- Ajuste de hiperparâmetros
+- Ranking de algoritmos
+- Ajuste de threshold
+
+📌 Essas decisões ficam **exclusivamente** para a Seção 8.
+
+---
+
+
+## [S8] Modelos, Hiperparâmetros e Comparação Empírica
+
+A Seção 8 é responsável pela **avaliação empírica controlada de modelos supervisionados**, utilizando os dados preparados até a Seção 6 e os critérios definidos na Seção 7.
+
+Esta etapa **não altera dados, métricas ou decisões de risco**. Seu objetivo é gerar **evidência comparável e auditável** para fundamentar a escolha do modelo candidato à exportação.
+
+---
+
+### [S8.0] Contrato da Seção (visão operacional)
+
+**Inputs**
+- `payload_s5.split`
+  - `X_train`, `X_test`, `y_train`, `y_test`
+- `payload_s6.representation`
+  - dados transformados (`X_train_rep`, `X_test_rep`)
+  - artefato de transformação (pipeline/transformer)
+- `payload_s7.decision`
+  - métrica principal (governança de risco)
+  - métricas secundárias
+  - baselines conceituais
+
+**Outputs**
+- leaderboard consolidado de modelos
+- métricas de avaliação no conjunto de teste
+- registros de execução:
+  - modelo
+  - modo de treinamento
+  - hiperparâmetros utilizados
+- decisão empírica do modelo candidato à exportação
+
+**Garantias**
+- nenhum dado é modificado
+- nenhuma métrica é redefinida
+- nenhuma decisão de risco é alterada
+- a execução ocorre **apenas por ação explícita do usuário**
+
+---
+
+### [S8.1] Seleção de Modelos
+
+Define quais algoritmos supervisionados participam da avaliação empírica.
+
+- múltipla seleção permitida
+- execução em fila determinística
+- modelos não selecionados não são avaliados
+
+---
+
+### [S8.2] Estratégia de Treinamento
+
+Define o modo de treinamento aplicado a cada modelo.
+
+- **Treino direto**
+  - uso de hiperparâmetros explícitos
+- **Busca de hiperparâmetros**
+  - uso de GridSearchCV
+  - parâmetros definidos via dicionário
+
+O modo é exclusivo por modelo e não admite estados implícitos.
+
+---
+
+### [S8.3] Configuração de Hiperparâmetros
+
+Os hiperparâmetros podem ser definidos a partir de duas fontes:
+
+- painel de configuração (treino direto)
+- dicionário de grid (busca de hiperparâmetros)
+
+Os grids utilizados seguem definições **deliberadas e documentadas**, descritas no arquivo:
+
+📄 `hyperparameter_grids.md`
+
+---
+
+### [S8.4] Execução Controlada
+
+A execução dos experimentos:
+- ocorre apenas ao acionar explicitamente o comando de execução
+- segue ordem sequencial em fila
+- gera logs auditáveis
+- não é disparada automaticamente por alterações de configuração
+
+---
+
+### [S8.5] Avaliação no Conjunto de Teste
+
+Cada modelo treinado é avaliado exclusivamente no conjunto de teste.
+
+As métricas calculadas incluem:
+- accuracy
+- precision
+- recall
+- f1-score
+- ROC-AUC
+
+As métricas são calculadas de forma independente da métrica principal definida na Seção 7.
+
+---
+
+### [S8.6] Leaderboard
+
+Os resultados são consolidados em um leaderboard empírico:
+
+- ordenável dinamicamente por qualquer métrica
+- destaque visual da métrica selecionada
+- ranking informativo (não decisório)
+
+O leaderboard **não impõe decisões automáticas**.
+
+---
+
+### [S8.7] Decisão Empírica
+
+A leitura final dos resultados:
+- identifica trade-offs entre modelos
+- seleciona candidatos viáveis
+- fundamenta a escolha do modelo a ser exportado
+
+A decisão final mantém explícita a separação entre:
+- **governança avaliativa** (Seção 7)
+- **exploração empírica** (Seção 8)
+
+---
+
+
+## [S9] Exportação do Modelo
+
+A Seção 9 é responsável por **materializar em artefato persistente** o modelo selecionado na Seção 8.
+Nenhum novo treinamento, avaliação ou decisão ocorre nesta etapa.
+
+O objetivo é garantir que o modelo exportado preserve integralmente:
+- a representação de dados definida na Seção 6;
+- os parâmetros aprendidos durante o treinamento;
+- a decisão empírica documentada na Seção 8.
+
+---
+
+### [S9.0] Contrato da Seção (visão operacional)
+
+**Inputs**
+- `payload_s6.representation`
+  - transformer / pipeline de pré-processamento
+- `payload_s8.decision`
+  - chave do modelo selecionado
+  - estimador treinado correspondente
+  - justificativa da decisão
+
+**Outputs**
+- artefato persistente do modelo:
+  - pipeline completo de inferência (pré-processamento + modelo)
+- metadados de exportação (opcional):
+  - critério de decisão
+  - timestamp
+  - identificador do modelo
+
+**Garantias**
+- nenhum dado é modificado
+- nenhum treinamento adicional é executado
+- nenhuma métrica é recalculada
+- nenhuma decisão é alterada
+
+---
+
+### [S9.1] Composição do Artefato Exportado
+
+O artefato exportado deve conter **um único pipeline de inferência**, composto por:
+
+1. etapa de pré-processamento (Seção 6)
+2. modelo treinado e selecionado (Seção 8)
+
+Essa composição garante consistência entre treino e inferência,
+evitando divergências na transformação dos dados.
+
+---
+
+### [S9.2] Origem do Modelo
+
+O modelo exportado:
+- é exclusivamente aquele selecionado na Seção 8;
+- não sofre ajustes adicionais;
+- não é reavaliado nesta etapa.
+
+A Seção 9 **consome a decisão**, não a redefine.
+
+---
+
+### [S9.3] Persistência
+
+O pipeline final é persistido como artefato reutilizável,
+utilizando formato adequado para objetos do scikit-learn.
+
+A estratégia de persistência deve priorizar:
+- reprodutibilidade,
+- compatibilidade futura,
+- simplicidade de carregamento.
+
+---
+
+### [S9.4] Metadados de Exportação (opcional)
+
+Opcionalmente, podem ser persistidos metadados associados ao modelo exportado,
+incluindo:
+
+- identificador do modelo;
+- critério principal de decisão;
+- seção de origem da decisão;
+- timestamp da exportação.
+
+Esses metadados não interferem na inferência,
+servindo apenas para auditoria e rastreabilidade.
+
+---
+
+### [S9.5] Encerramento do Pipeline de Modelagem
+
+Com a conclusão da Seção 9:
+- o pipeline de modelagem supervisionada é considerado encerrado;
+- o modelo encontra-se pronto para uso em inferência futura;
+- etapas subsequentes podem consumir o artefato exportado sem dependência do notebook.
+
+A separação entre **decisão**, **materialização** e **consumo** é mantida explícita.

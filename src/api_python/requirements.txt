@@ -13,3 +13,6 @@ pandas==2.2.3
 
 # Optional (useful for local dev / debugging)
 python-dotenv==1.0.1
+
+# YAML contracts
+PyYAML==6.0.2

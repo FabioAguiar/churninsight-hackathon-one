@@ -1,0 +1,82 @@
+# ============================================================
+# Internal Contract — Bank Churn (v1)
+# ============================================================
+# Adapta payload externo (Telco-like, 8 campos) -> features do modelo bancário
+# Compatível com src/api_python/internal_contract.py
+# ============================================================
+
+schema:
+  target: churn
+
+  # ⚠️ Deve bater com as colunas esperadas pelo pipeline/modelo
+  model_features:
+    - tenure
+    - estimated_salary
+    - products_number
+    - credit_score
+    - active_member
+    - credit_card
+
+mapping:
+  api_to_model:
+
+    # tenure (externo) -> tenure (interno)
+    tenure:
+      type: direct
+      to_feature: tenure
+
+    # monthly_charges (externo) -> estimated_salary (interno)
+    monthly_charges:
+      type: direct
+      to_feature: estimated_salary
+
+    # contract (externo enum) -> products_number (interno int)
+    contract:
+      type: rule
+      to_feature: products_number
+      rules:
+        Month-to-month: 1
+        One year: 2
+        Two year: 3
+      fallback: 1
+
+    # internet_service (externo bucket) -> credit_score (interno aproximado)
+    internet_service:
+      type: rule
+      to_feature: credit_score
+      rules:
+        Fiber optic: 700
+        DSL: 600
+        No: 500
+      fallback: 650
+
+    # online_security (externo Yes/No) -> active_member (interno 0/1)
+    online_security:
+      type: yes_no_to_binary
+      to_feature: active_member
+      mapping:
+        Yes: 1
+        No: 0
+      fallback: 0
+
+    # tech_support também aponta para active_member (colisão resolvida por max())
+    tech_support:
+      type: yes_no_to_binary
+      to_feature: active_member
+      mapping:
+        Yes: 1
+        No: 0
+      fallback: 0
+
+    # paperless_billing (externo Yes/No) -> credit_card (interno 0/1)
+    paperless_billing:
+      type: yes_no_to_binary
+      to_feature: credit_card
+      mapping:
+        Yes: 1
+        No: 0
+      fallback: 0
+
+# Campos externos mantidos só por compatibilidade (não entram no modelo)
+defaults:
+  payment_method: "Electronic check"
