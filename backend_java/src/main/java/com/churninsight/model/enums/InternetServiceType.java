@@ -1,4 +1,5 @@
 package com.churninsight.model.enums;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum InternetServiceType {
@@ -15,5 +16,15 @@ public enum InternetServiceType {
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    @JsonCreator
+    public static InternetServiceType fromValue(String text) {
+        for (InternetServiceType b : InternetServiceType.values()) {
+            if (String.valueOf(b.value).equals(text)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value'" + text + "'");
     }
 }

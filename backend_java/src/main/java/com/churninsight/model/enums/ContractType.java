@@ -1,4 +1,5 @@
 package com.churninsight.model.enums;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ContractType {
@@ -15,5 +16,15 @@ public enum ContractType {
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    @JsonCreator
+    public static ContractType fromValue(String text) {
+        for (ContractType b : ContractType.values()) {
+            if (String.valueOf(b.value).equals(text)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value '" + text + "'");
     }
 }
