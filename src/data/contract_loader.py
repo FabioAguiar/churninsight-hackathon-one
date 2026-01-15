@@ -169,7 +169,8 @@ def load_contract_yaml(path: str | Path) -> ContractConfig:
         raise TypeError("Campo 'schema' deve ser um objeto/dict no YAML.")
 
     target = _as_str(schema.get("target"), field="schema.target")
-    features = _as_list_str(schema.get("features"), field="schema.features", allow_empty=False)
+    features_raw = schema.get("features") or schema.get("model_features")
+    features = _as_list_str(features_raw, field="schema.features|schema.model_features", allow_empty=False)
 
     id_columns = _as_list_str(schema.get("id_columns", []), field="schema.id_columns", allow_empty=True)
     drop_columns = _as_list_str(schema.get("drop_columns", []), field="schema.drop_columns", allow_empty=True)

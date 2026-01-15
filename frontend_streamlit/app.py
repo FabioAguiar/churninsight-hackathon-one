@@ -98,6 +98,7 @@ def yesno(value: bool) -> str:
 # Header
 # ============================================================
 integrantes = [
+    "Bruno Hagemann",
     "Fábio Almeida",
     "João Vitor",
     "Fábio Aguiar",        
