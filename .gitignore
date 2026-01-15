@@ -80,3 +80,12 @@ docker-compose.override.yml
 .project
 .settings/
 *.iml
+# =====================================================
+# Infraestrutura OCI / Terraform (NÃO SUBIR)
+# =====================================================
+infra_oci/
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.pem
