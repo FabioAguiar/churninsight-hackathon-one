@@ -80,12 +80,22 @@ docker-compose.override.yml
 .project
 .settings/
 *.iml
-# =====================================================
-# Infraestrutura OCI / Terraform (NÃO SUBIR)
-# =====================================================
-infra_oci/
+# ==================================
+# Regras de Segurança Terraform 
+# ==================================
+
+
+# Ignora a pasta de plugins temporários
 .terraform/
+
+# Ignora os arquivos de ESTADO (Contém dados sensíveis da nuvem)
 *.tfstate
 *.tfstate.backup
+
+# Ignora arquivos de variáveis com senhas
 *.tfvars
+
+# Ignora chaves privadas
 *.pem
+id_rsa_hackathon
+
